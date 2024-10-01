@@ -30,20 +30,6 @@ const createCourse = async (data: Course, token: string) => {
 
 };
 
-// TODO: Foundation for updating coverimage. Implement next PR. Possibly merge with updateCourseDetail
-// Create a new section for a course
-/* 
-const updateCoverImage = async ( id: any, token: string) => {
- 
-  return await axios.patch(
-    `${BACKEND_URL}/api/course/coverImage/${id}`,
-      
-    { 
-      headers: { Authorization: `Bearer ${token}` }
-      
-    }
-  ).then(res => res.data);
-}*/
 
 /**
  * Get all courses

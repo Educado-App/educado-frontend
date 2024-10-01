@@ -50,7 +50,6 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
   const [isLeaving, setIsLeaving] = useState<boolean>(false);
   const {register, handleSubmit, formState: { errors } } = useForm<Course>();
 
-
   const navigate = useNavigate()
   /**
      * Extra function to handle the response from the course service before it is passed to the useSWR hook
@@ -99,8 +98,6 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
     }
     
     if (!isLeaving || confirm("Você tem certeza?") === true ) {
-  
-      StorageService.uploadFile({ id: id, file: coverImg, parentType: "c" });
 
       const changes: Course = {
         title: data.title,
@@ -110,8 +107,9 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
         status: newStatus,
         creator: getUserInfo().id,
         estimatedHours: data.estimatedHours,
-        coverImg: id+"_"+"c"
+        coverImg: id+"_"+"c"  
       }
+
 
       // StorageService.deleteFile(id, token);
 
@@ -119,10 +117,13 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
       // When the user press the button to the right, the tick changes and it goes to the next component
       // When the user press the draft button, it saves as a draft and goes back to the course list
       if(id != "0"){
-        CourseServices.updateCourseDetail(changes, id, token )
+        CourseServices.updateCourseDetail(changes, id, token)
         .then(() => {
           toast.success('Curso atualizado');
           setStatusSTR(changes.status);
+
+          //Upload image with the actual id 
+          StorageService.uploadFile({ id: id, file: coverImg, parentType: "c" });
 
           if(isLeaving){
             window.location.href = "/courses";
@@ -140,11 +141,15 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
         .then(res => {
           toast.success('Curso criado');
 
+          //Upload image with the new id
+          StorageService.uploadFile({ id: res.data._id, file: coverImg, parentType: "c" });
+
+
           if(isLeaving){
             window.location.href = "/courses";
             
           } else{
-              setId(res.data._id)
+              setId(res.data._id);
               setTickChange(1);
               navigate(`/courses/manager/${res.data._id}/1`);
               
@@ -238,11 +243,11 @@ export const CourseComponent = ({token, id, setTickChange, setId}: CourseCompone
           </div> 
           
           <div>
-            {/*Cover image field is made but does not interact with the db*/}
+            {/*Cover image field*/}
             <div className="flex flex-col space-y-2 text-left">
               <label htmlFor='cover-image'>Imagem de capa</label> {/** Cover image */} 
             </div>
-            <Dropzone inputType='image' callBack={setCoverImg}/> {/** FIX: Doesn't have the functionality to upload coverimage to Buckets yet!*/}
+            <Dropzone inputType='image' callBack={setCoverImg}/>
             {errors.description && <span className='text-warning'>Este campo é obrigatório</span>} {/** This field is required */}
           </div>
           <div className='text-right' >

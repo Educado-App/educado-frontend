@@ -42,7 +42,7 @@ export const Dropzone = ({callBack, inputType}:DropzoneProps) => {
                         >
                             <span>Carregamento de arquivo</span>
                             {inputType === "image" ? 
-                                <input id="file-upload" name="file-upload" accept="image/*" type="file" className="sr-only" onChange={(e)=>{console.log(e.target.files?.item(0)); callBack(e.target.files?.item(0))}}/>
+                                <input id="file-upload" name="file-upload" accept="image/*" type="file" className="sr-only" onChange={(e)=>{callBack(e.target.files?.item(0))}}/>
                                 :
                                 inputType === "video" ? 
                                 <input id="file-upload" name="file-upload" accept="video/*" type="file" className="sr-only" onChange={(e)=>{console.log(e.target.files?.item(0)); callBack(e.target.files?.item(0))}}/>
