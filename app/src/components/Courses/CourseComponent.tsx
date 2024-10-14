@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useForm, SubmitHandler } from "react-hook-form";
-import useSWR from "swr";
 import { toast } from "react-toastify";
 import { useNotifications } from "../notification/NotificationContext";
 // Services
@@ -23,15 +22,16 @@ import GenericModalComponent from "../GenericModalComponent";
 
 // Interface
 import { Course } from "../../interfaces/Course";
-import { add } from "cypress/types/lodash";
-
-
+import { set } from "cypress/types/lodash";
 
 interface CourseComponentProps {
   token: string;
   id: string | undefined;
   setTickChange: Function;
   setId: Function;
+  courseData?: any;
+  updateHighestTick: Function;
+  updateLocalData: Function;
 }
 
 /**
@@ -41,12 +41,7 @@ interface CourseComponentProps {
  * @param id The course id
  * @returns HTML Element
  */
-export const CourseComponent = ({
-  token,
-  id,
-  setTickChange,
-  setId,
-}: CourseComponentProps) => {
+export const CourseComponent = ({ token, id, setTickChange, setId, courseData, updateHighestTick, updateLocalData }: CourseComponentProps) => {
   const [coverImg, setCoverImg] = useState<File | null>();
   const [categoriesOptions, setCategoriesOptions] = useState<JSX.Element[]>([]);
   const [statusSTR, setStatusSTR] = useState<string>("draft");
@@ -60,6 +55,7 @@ export const CourseComponent = ({
 
   const [charCount, setCharCount] = useState<number>(0);
   const [isLeaving, setIsLeaving] = useState<boolean>(false);
+  const [data, setData] = useState<Course>();
   const {
     register,
     handleSubmit,
@@ -73,28 +69,14 @@ export const CourseComponent = ({
   const existingCourse = id != "0";
 
   const navigate = useNavigate();
-  /**
-   * Extra function to handle the response from the course service before it is passed to the useSWR hook
-   *
-   * @param url The url to fetch the course details from backend
-   * @param token The user token
-   * @returns The course details
-   */
-  const getData = async (url: string, token: string) => {
-    const res: any = await CourseServices.getCourseDetail(url, token);
 
-    setStatusSTR(res.status);
-    setCharCount(res.description.length);
-    return res;
-  };
-
-  // Fetch Course Details
-  if (existingCourse) {
-    var { data, error } = useSWR(
-      token ? [`${BACKEND_URL}/api/courses/${id}`, token] : null,
-      getData
-    );
-  }
+     /**
+     * Extra function to handle the response from the course service before it is passed to the useSWR hook
+     * 
+     * @param url The url to fetch the course details from backend
+     * @param token The user token
+     * @returns The course details
+     */
 
   useEffect(() => {
     //TODO: get categories from db
@@ -113,6 +95,34 @@ export const CourseComponent = ({
     );
   }, []);
 
+  useEffect(() => {
+    setData(courseData);
+    if (courseData) {
+      setStatusSTR(courseData.status);
+      setCharCount(courseData.description.length);
+    }
+  }, [courseData]);
+
+  //Used to format PARTIAL course data, meaning that it can be used to update the course data gradually
+  const formatCourse = (data: Partial<Course>): Course => {
+    console.log(data.status)
+    return {
+      title: data.title || '',
+      description: data.description || '',
+      category: data.category || '',
+      difficulty: data.difficulty || 0,
+      status: statusSTR,
+      creator: getUserInfo().id,
+      estimatedHours: data.estimatedHours || 0,
+      coverImg: data.coverImg || ''
+    };
+  };
+
+  const handleFieldChange = (field: keyof Course, value: any) => {
+    const updatedData = { ...data, [field]: value };
+    updateLocalData(formatCourse(updatedData));
+  };
+
   const handleDialogEvent = (message: string, onConfirm: () => void, dialogTitle: string) => {
     setDialogTitle(dialogTitle);
     setDialogMessage(message);
@@ -124,7 +134,6 @@ export const CourseComponent = ({
   const handleSaveExistingDraft = async (changes: Course) => {
     try {
       await CourseServices.updateCourseDetail(changes, id, token);
-      setStatusSTR(changes.status);
       navigate("/courses");
       addNotification("Seções salvas com sucesso!");
     } catch (err) {
@@ -142,7 +151,7 @@ export const CourseComponent = ({
     } catch (err) {
       toast.error(err as string);
     }
-  };
+  }
 
   // Creates new course and navigates to section creation for it
   const handleCreateNewCourse = async (data: Course) => {
@@ -151,6 +160,7 @@ export const CourseComponent = ({
       addNotification("Curso criado com sucesso!");
       setId(newCourse.data._id);
       setTickChange(1);
+      updateHighestTick(1);
       navigate(`/courses/manager/${newCourse.data._id}/1`);
     } catch (err) {
       // Course created
@@ -158,10 +168,13 @@ export const CourseComponent = ({
     }
   };
 
-  const onSubmit: SubmitHandler<Course> = (data) => {
-    StorageService.uploadFile({ id: id, file: coverImg, parentType: "c" });
 
-    const changes: Course = {
+ const handleFileUpload = () => {
+  StorageService.uploadFile({ id: id, file: coverImg, parentType: "c" });
+};
+  //Used to prepare the course changes before sending it to the backend
+  const prepareCourseChanges = (data: Course): Course => {
+    return {
       title: data.title,
       description: data.description,
       category: data.category,
@@ -169,19 +182,19 @@ export const CourseComponent = ({
       status: statusSTR,
       creator: getUserInfo().id,
       estimatedHours: data.estimatedHours,
-      coverImg: id + "_" + "c",
+      coverImg: id + "_" + "c"
     };
+  };
 
-    // 3 submit cases
-    // existing draft course, save --> Update course details and go back to course list : should trigger popup
-    // new draft course, save --> Create course and go back to course list : should trigger popup
-    // new draft course, add sections --> Create course and go to section creation
-    // published course, add sections --> Navigate to section creation
 
+  const onSubmit: SubmitHandler<Course> = (data) => {
+    handleFileUpload();
+    const changes = prepareCourseChanges(data);
     if (isLeaving) {
+      
       // left button pressed
       // StorageService.deleteFile(id, token);
-
+  
       // Update course details
       // When the user press the button to the right, the tick changes and it goes to the next component
       // When the user press the draft button, it saves as a draft and goes back to the course list
@@ -196,7 +209,9 @@ export const CourseComponent = ({
           handleCreateNewDraft.bind(this, changes), "Salvar como rascunho "
         );
       }
+      setIsLeaving(false);
     } else {
+      updateLocalData(changes);
       // right button pressed
       // Creates new course and navigates to section creation for it
       if (!existingCourse) {
@@ -206,10 +221,12 @@ export const CourseComponent = ({
         setTickChange(1);
         navigate(`/courses/manager/${id}/1`);
       }
-    }
-
-    setIsLeaving(false);
+    };
   };
+
+  
+
+  
 
   if (!data && existingCourse)
     return (
@@ -217,7 +234,7 @@ export const CourseComponent = ({
         <Loading />
       </Layout>
     ); // Loading course details
-  if (error) return <NotFound />; // Course not found
+
 
   return (
     <div>
@@ -259,7 +276,7 @@ export const CourseComponent = ({
         {/*White bagground*/}
         <div className="w-full float-right bg-white rounded-lg shadow-lg justify-between space-y-4 p-10">
           <div className="flex flex-col space-y-2 text-left">
-            <label htmlFor="title">Nome do curso</label> {/*Title*/}
+            <label htmlFor="title">Nome do curso <span className="text-red-500">*</span></label> {/*Title*/}
             <input
               id="title-field"
               type="text"
@@ -267,6 +284,7 @@ export const CourseComponent = ({
               placeholder={data ? data.title : ""}
               className="form-field  bg-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
               {...register("title", { required: true })}
+              onChange={(e) => handleFieldChange('title', e.target.value)}
             />
             {errors.title && (
               <span className="text-warning">Este campo é obrigatório</span>
@@ -277,76 +295,55 @@ export const CourseComponent = ({
           <div className="flex items-center gap-8 w-full mt-8">
             {/*Field to select a level from a list of options*/}
             <div className="flex flex-col w-1/2 space-y-2 text-left  ">
-              <label htmlFor="level">Nível</label> {/** Level */}
-              <select
-                id="difficulty-field"
-                defaultValue={data ? data.difficulty : "Selecione o nível"}
-                className="bg-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
-                {...register("difficulty", { required: true })}
+            <label htmlFor='level'> Nível <span className="text-red-500">*</span></label> {/*asteric should not be hard coded*/}
+              <select id="difficulty-field" 
+              defaultValue={data ? data.difficulty : ""}
+              className="bg-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+              {...register("difficulty", { required: true })}
+              onChange={(e) => handleFieldChange('difficulty', parseInt(e.target.value))}
               >
                 {/*Hard coded options by PO, should be changed to get from db*/}
-                <option disabled> Selecione o nível</option>
+                <option value=""disabled> Selecione o nível</option>
                 <option value={1}>Iniciante</option> {/** Beginner */}
                 <option value={2}>Intermediário</option> {/** Intermediate */}
                 <option value={3}>Avançado</option> {/** Advanced */}
               </select>
-              {errors.difficulty && (
-                <span className="text-warning">Este campo é obrigatório</span>
-              )}{" "}
-              {/** This field is required */}
+              <span className='text-warning min-h-[24px]'>{errors.difficulty ? 'Este campo é obrigatório': ''}</span>
             </div>
 
             {/*Field to choose a category from a list of options*/}
             <div className="flex flex-col w-1/2 space-y-2 text-left  ">
-              <label htmlFor="category">Categoria</label>
-              <select
-                id="category-field"
-                defaultValue={data ? data.category : "Selecione a categoria"}
+              <label htmlFor='category'>Categoria <span className="text-red-500">*</span></label> 
+              <select id="category-field"
+                defaultValue={data ? data.category : ""}
                 className="bg-secondary focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
                 {...register("category", { required: true })}
+                onChange={(e) => handleFieldChange('category', e.target.value)}
               >
                 {/*Hard coded options by PO, should be changed to get from db*/}
-                <option value={"Selecione a categoria"} disabled>
-                  {" "}
-                  Selecione a categoria
-                </option>
-                ,{categoriesOptions}
+                <option value="" disabled> Selecione a categoria</option>,
+                {categoriesOptions}
+
               </select>
-              {errors.description && (
-                <span className="text-warning">Este campo é obrigatório</span>
-              )}{" "}
-              {/** This field is required */}
+              <span className='text-warning min-h-[24px]'>{errors.category ? 'Este campo é obrigatório': "               "}</span>
             </div>
           </div>
 
           {/*Field to input the description of the course*/}
           <div className="flex flex-col space-y-2 ">
-            <div className="flex items-center space-x-2">
-              {" "}
-              {/* Container for label and icon */}
-              <label className="text-left" htmlFor="description">
-                Descrição{" "}
-              </label>{" "}
-              {/** Description */}
-              <ToolTipIcon
-                index={1}
-                toolTipIndex={toolTipIndex}
-                text={
-                  "😉 Dica: insira uma descrição que desperte a curiosidade e o interesse dos alunos"
-                }
-                tooltipAmount={2}
-                callBack={setToolTipIndex}
-              />
+            <div className="flex items-center space-x-2"> {/* Container for label and icon */}
+              <label className='text-left' htmlFor='description'>Descrição <span className="text-red-500">*</span> </label> {/** Description */} 
+              <ToolTipIcon index={1} toolTipIndex={toolTipIndex} text={"😉 Dica: insira uma descrição que desperte a curiosidade e o interesse dos alunos"} tooltipAmount={2} callBack={setToolTipIndex}/>
             </div>
-            <textarea
-              id="description-field"
-              maxLength={400}
-              rows={4}
-              defaultValue={data ? data.description : ""}
-              placeholder={data ? data.description : ""}
-              className="resize-none form-field focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-secondary"
-              {...register("description", { required: true })}
-              onChange={(e) => setCharCount(e.target.value.length)}
+            <textarea id="description-field" maxLength={400} rows={4}
+            defaultValue={data ? data.description : ""}
+            placeholder={data ? data.description : ""}
+            className="resize-none form-field focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent bg-secondary"
+            {...register("description", { required: true })}
+            onChange={(e) => {
+              setCharCount(e.target.value.length);
+              handleFieldChange('description', e.target.value);
+            }}
             />
             {errors.description && (
               <span className="text-warning">Este campo é obrigatório</span>
@@ -361,15 +358,13 @@ export const CourseComponent = ({
           <div>
             {/*Cover image field is made but does not interact with the db*/}
             <div className="flex flex-col space-y-2 text-left">
-              <label htmlFor="cover-image">Imagem de capa</label>{" "}
-              {/** Cover image */}
+              <label htmlFor='cover-image'>Imagem de capa <span className="text-red-500">*</span></label> {/** Cover image */} 
             </div>
-            <Dropzone inputType="image" callBack={setCoverImg} />{" "}
-            {/** FIX: Doesn't have the functionality to upload coverimage to Buckets yet!*/}
-            {errors.description && (
-              <span className="text-warning">Este campo é obrigatório</span>
-            )}{" "}
-            {/** This field is required */}
+            <Dropzone inputType='image' callBack={(file: File) => {
+              setCoverImg(file);
+              handleFieldChange('coverImg', file ? file.name : '');
+            }}/> {/** FIX: Doesn't have the functionality to upload coverimage to Buckets yet!*/}
+            {errors.description && <span className='text-warning'>Este campo é obrigatório</span>} {/** This field is required */}
           </div>
           <div className="text-right">
             <label htmlFor="">o arquivo deve conter no máximo 10Mb</label>
