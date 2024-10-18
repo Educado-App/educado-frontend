@@ -1,75 +1,83 @@
+import { useNavigate } from "react-router-dom";
 
-interface Props {
+interface ChecklistProps {
     tickChange: number;
+    highestTick: number;
+    id: string;
+    setTickChange: (tick: number) => void;
 }
 
-function Checklist ({tickChange}: Props)  {
-    
+const Checklist: React.FC<ChecklistProps> = ({ tickChange, highestTick, id, setTickChange }) => {
+    const navigate = useNavigate();
+
+    const handleCheckboxClick = (newTick: number) => {
+        if (newTick <= highestTick) {
+            setTickChange(newTick);
+            navigate(`/courses/manager/${id}/${newTick}`);
+        }
+    };
+
+    const getLabelClass = (tick: number) => {
+        return `pl-2 flex items-center ${tickChange === tick ? "border-l-4 border-primary" : ""} ${highestTick < tick ? "text-gray-400" : ""}`;
+    };
+
     return (
-    
-    //ON ALL checkboxes depending on button show other components
-
-        /* Checklist and Header */
-        <div className="m-8 flex-grow overflow-x-hidden w-1/5 float-left items-center justify-left space-y-4 grid grid-flow-row auto-rows-max ">
-    
-            {/* Header */}
-            <div >
-                <p className="text-2xl text-grayMedium">Novo Curos</p> {/* New course */}
+        <div className="m-8 flex-grow overflow-x-hidden w-1/5 float-left items-center justify-left space-y-4 grid grid-flow-row auto-rows-max">
+            <div>
+                <p className="text-2xl text-grayMedium">Novo Curos</p>
             </div>
 
-            {/* Check-box list */}
-            <div className="border-y py-8 w-5/6 border-grayMedium flex flex-col space-y-4 ">
+            <div className="border-y py-8 w-5/6 border-grayMedium flex flex-col space-y-4">
+                <label
+                    htmlFor="check1"
+                    className={`${getLabelClass(0)} ${highestTick >= 0 ? "cursor-pointer" : ""}`}
+                    onClick={() => handleCheckboxClick(0)}
+                >
+                    <input
+                        className={`mr-2 text-primary rounded ${highestTick >= 0 ? "cursor-pointer" : ""}`}
+                        type="checkbox"
+                        id="check1"
+                        disabled={highestTick < 0}
+                        checked={highestTick >= 0}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                    />
+                    Informações gerais
+                </label>
 
-                {/* General Information */}
-                {tickChange === 0 ?
-                        <label htmlFor="check1" className="pl-2 flex items-center border-l-4 border-primary" >
-                            <input className='mr-2 text-primary rounded' type="checkbox" id="check1" disabled />
-                        Informações gerais</label> 
-                    :
-                    <label htmlFor="check1" className="pl-3 flex items-center" >
-                        <input className='mr-2 text-primary rounded' type="checkbox" id="check1" disabled checked/>
-                    Informações gerais</label>
-                }
+                <label
+                    htmlFor="check2"
+                    className={`${getLabelClass(1)} ${highestTick >= 1 ? "cursor-pointer" : ""}`}
+                    onClick={() => handleCheckboxClick(1)}
+                >
+                    <input
+                        className={`mr-2 text-primary rounded ${highestTick >= 1 ? "cursor-pointer" : ""}`}
+                        type="checkbox"
+                        id="check2"
+                        disabled={highestTick < 1}
+                        checked={highestTick >= 1}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                    />
+                    Seções do curso
+                </label>
 
-                
-                {/* Course sections */}
-                {tickChange === 0 ?
-                <label htmlFor="check2" className="pl-3 flex items-center" >
-                <input className='mr-2 text-primary rounded' type="checkbox" id="check2" disabled/>
-                Seções do curso</label>
-                :
-                tickChange === 1 ?
-                <label htmlFor="check2" className="pl-2 flex items-center border-l-4 border-primary" >
-                    <input className='mr-2 text-primary rounded' type="checkbox" id="check2" disabled/>
-                Seções do curso</label>
-                :
-                <label htmlFor="check2" className="pl-3 flex items-center" >
-                    <input className='mr-2 text-primary rounded' type="checkbox" id="check2" disabled checked/>
-                Seções do curso</label>
-                }
-
-    
-
-
-                {/* Review course */}
-                {tickChange < 2 ?
-                    <label htmlFor="check3" className="pl-3 flex items-center" >
-                        <input className='mr-2 text-primary rounded' type="checkbox" id="check3" disabled/>
-                    Revisar curso</label> 
-                    :
-                    <label htmlFor="check3" className="pl-2 flex items-center border-l-4 border-primary" >
-                        <input className='mr-2 text-primary rounded' type="checkbox" id="check3" disabled/>
-                    Revisar curso</label>
-                }
-                    
+                <label
+                    htmlFor="check3"
+                    className={`${getLabelClass(2)} ${highestTick >= 2 ? "cursor-pointer" : ""}`}
+                    onClick={() => handleCheckboxClick(2)}
+                >
+                    <input
+                        className={`mr-2 text-primary rounded ${highestTick >= 2 ? "cursor-pointer" : ""}`}
+                        type="checkbox"
+                        id="check3"
+                        disabled={highestTick < 2}
+                        checked={highestTick >= 2}
+                        style={{ outline: 'none', boxShadow: 'none' }}
+                    />
+                    Revisar curso
+                </label>
             </div>
-            
         </div>
-    
-    
+    );
+};
 
-    )
-
-}
-
-export default Checklist
+export default Checklist;
