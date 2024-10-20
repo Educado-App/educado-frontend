@@ -15,9 +15,9 @@ return (
     onClick={() => setToggleProfessionalExperience(!toggleProfessionalExperience)}>
         <div className="flex items-start">
         {toggleProfessionalExperience ? (
-            <Icon path={mdiChevronUp} size={1} color="tertiary" />
+            <Icon path={mdiChevronUp} size={1} color="white" />
         ) : (
-            <Icon path={mdiChevronDown} size={1} color="tertiary" />
+            <Icon path={mdiChevronDown} size={1} color="white" />
         )}
         Experiências profissionais {/* Professional Experience */}
         </div>

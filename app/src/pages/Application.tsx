@@ -95,7 +95,11 @@ const Application = () => {
           <WorkExperience register={register} errors={errors} />
 
           {/* Bottom div */}
-          <div className="w-[65%] flex justify-end">
+          <div className="w-[65%] flex justify-between pt-10">
+            <Link className="underline text-neutral-700 text-base font-normal font-['Montserrat']"
+            to="/login">
+              Voltar para login
+            </Link>
 
             {/* Send for analysis */}
             <button type="button" onClick={openModal}
