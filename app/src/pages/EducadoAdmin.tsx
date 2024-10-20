@@ -16,7 +16,8 @@ const EducadoAdmin = () => {
     const [rowsPerPage, setRowsPerPage] = useState(10);
 
     const location = useLocation();
-    const { data, mutate } = useSWR('api/user-info', AdminServices.getUserApplications);
+    const { mutate } = useSWR('api/user-info', AdminServices.getUserApplications);
+    const data = {data: {data: [":)"]}}
 
     if (!data) return <Loading/>
 
