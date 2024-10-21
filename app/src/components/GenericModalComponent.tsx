@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { ReactNode } from 'react';
 import './styles/GenericModalComponent.css';
 
 interface GenericModalProps {
@@ -18,6 +18,7 @@ interface GenericModalProps {
         cancelButton?: React.CSSProperties,
         confirmButton?: React.CSSProperties
     };
+    children?: ReactNode | ReactNode[]
 }
 
 /**
@@ -35,7 +36,8 @@ const GenericModalComponent: React.FC<GenericModalProps> = ({
     cancelBtnText = "Cancelar",   // Renameable to e.g. "Fechar" (close) when invoking the component
     onClose,
     isVisible = false,
-    onConfirm
+    onConfirm,
+    children
 }) => {
 
     if (!isVisible)
@@ -57,7 +59,8 @@ const GenericModalComponent: React.FC<GenericModalProps> = ({
 
                 {/* Content */}
                 <div className="modal-body">
-                    {contentText}
+                    <p>{contentText}</p>
+                    {children}
                 </div>
 
                 {/* Action buttons */}
