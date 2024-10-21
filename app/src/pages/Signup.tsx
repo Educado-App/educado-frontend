@@ -56,7 +56,7 @@ const SignupSchema = Yup.object().shape({
     [Yup.ref("password"), null],
     "As senhas não coincidem"
   ),
-  email: Yup.string().email("Formato de email inválido").required("Required"),
+  email: Yup.string().matches(/^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i, 'Seu email não está correto').required("O email é obrigatório"),
 });
 
 const Signup = () => {
@@ -81,6 +81,7 @@ const Signup = () => {
   });
 
   const [emailExistsError, setEmailExistError] = useState(null);
+  const [emailNotValid, setEmailNotValid] = useState(false);
   const [emailExistsErrorMessage, setErrorExistMessage] = useState("");
   const [passwordMismatchError, setPasswordMismatchError] = useState(null);
   const [passwordMismatchErrorMessage, setPasswordMismatchErrorMessage] =
@@ -125,13 +126,13 @@ const Signup = () => {
         } else {
           switch (err.response.data.error.code) {
             case "E0201": // Email already exists
-              setEmailExistError(err);
-              setErrorExistMessage(
-                "Já existe um usuário com o email fornecido"
-              );
-              setPasswordMismatchError(null);
-              setPasswordMismatchErrorMessage("");
-              break;
+            setEmailExistError(err);
+            setErrorExistMessage(
+              "Já existe um usuário com o email fornecido"
+            );
+            setPasswordMismatchError(null);
+            setPasswordMismatchErrorMessage("");
+            break;
             case "E0105": // Password mismatch
               setPasswordMismatchError(err);
               setPasswordMismatchErrorMessage("As senhas não combinam");
@@ -266,7 +267,8 @@ const Signup = () => {
 
                 <form
                   onSubmit={handleSubmit(onSubmit)}
-                  className="stretch flex flex-col">
+                  className="stretch flex flex-col"
+                  noValidate>
                   <div className="flex">
                     <div className="relative flex-1">
                       <label
@@ -308,7 +310,7 @@ const Signup = () => {
                   <div className="relative">
                     <label
                       className="flex flex-start text-[#383838] text-sm font-normal gap-1 font-['Montserrat'] mt-5 after:content-['*'] after:ml-0.5 after:text-red-500 "
-                      htmlFor="email-field">
+                      htmlFor="email-field">  
                       Email
                     </label>
                     <input
@@ -321,22 +323,25 @@ const Signup = () => {
                         required: "introduza o seu e-mail.",
                       })}
                     />
+                    {errors.email && 
+                     <div
+                     className="flex items-center font-normal font-['Montserrat']"
+                     role="alert">
+                     <p className="mt-1 ml-1 text-red-500 text-sm">
+                      {errors.email.message}
+                     </p>
+                   </div>
+                    }
                     {emailExistsError && (
                       <div
                         className="flex items-center font-normal font-['Montserrat']"
                         role="alert">
-                        <Icon
-                          path={mdiAlertCircleOutline}
-                          size={0.6}
-                          color="red"
-                        />
                         <p className="mt-1 ml-1 text-red-500 text-sm">
                           {emailExistsErrorMessage}
                         </p>
                       </div>
                     )}
                   </div>
-
                   <div className="relative">
                     <label
                       className="flex flex-start text-[#383838] text-sm font-normal gap-1 font-['Montserrat'] mt-5 after:content-['*'] after:ml-0.5 after:text-red-500 "
@@ -424,6 +429,15 @@ const Signup = () => {
                       />
                     </button>
                   </div>
+                  {errors.confirmPassword && 
+                     <div
+                     className="flex items-center font-normal font-['Montserrat']"
+                     role="alert">
+                     <p className="mt-1 ml-1 text-red-500 text-sm">
+                      {errors.confirmPassword.message}
+                     </p>
+                   </div>
+                    }
                   {passwordMismatchError && (
                     <div
                       className="flex items-center font-normal font-['Montserrat']"
