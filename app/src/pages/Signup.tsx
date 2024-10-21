@@ -103,6 +103,7 @@ const Signup = () => {
       lastName: data.lastName,
       email: data.email,
       password: data.password,
+      role: 'user',
       token: null,
     })
     
