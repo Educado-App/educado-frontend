@@ -14,9 +14,9 @@ return (
     onClick={() => setToggleAcademicExperiences(!toggleAcademicExperiences)}>
       <div className="flex items-start">
         {toggleAcademicExperiences ? (
-            <Icon path={mdiChevronUp} size={1} color="tertiary" />
+            <Icon path={mdiChevronUp} size={1} color="white" />
         ) : (
-            <Icon path={mdiChevronDown} size={1} color="tertiary" />
+            <Icon path={mdiChevronDown} size={1} color="white" />
         )}
         Experiências acadêmicas {/* Academic Experiences */}
       </div>
