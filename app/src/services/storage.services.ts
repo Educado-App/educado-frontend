@@ -26,6 +26,7 @@ type FileProps = {
  * @returns {void}
 */
 async function uploadFile({id, file, parentType: parentType}: FileProps) {
+
     if (!file || !id) {
         return;
     }

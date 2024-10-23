@@ -1,16 +1,45 @@
+import { FC } from "react";
+
+class DropzoneClass {
+    private static instance: DropzoneClass;
+    private _file: File | null = null;
+
+    private constructor() {}
+
+    public static getInstance(): DropzoneClass {
+        if (!DropzoneClass.instance) {
+            DropzoneClass.instance = new DropzoneClass();
+        }
+        return DropzoneClass.instance;
+    }
+
+    public setFile(file: File | null) {
+        this._file = file;
+    }
+
+    public getFile(): File | null {
+        return this._file;
+    }
+}
+export const dropzoneInstance = DropzoneClass.getInstance();
 
 type DropzoneProps = {
-    inputType: string,
-    callBack: Function
-}
+    inputType: string
+};
 
 /**
- * 
- * @param {Function}callBack - The function that will be called when the user uploads a file and should set the value of an variable in the parent component
+ * @param {string}input - The input type, can either be image or video
  * @returns {JSX.Element} - The image dropzone component
  */
 
-export const Dropzone = ({callBack, inputType}:DropzoneProps) => {
+
+export const Dropzone: FC<DropzoneProps> = ({ inputType }) => {
+
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.item(0) || null;
+    dropzoneInstance.setFile(file);
+  };
+
     return (
         <div>
 
@@ -42,10 +71,10 @@ export const Dropzone = ({callBack, inputType}:DropzoneProps) => {
                         >
                             <span>Carregamento de arquivo</span>
                             {inputType === "image" ? 
-                                <input id="file-upload" name="file-upload" accept="image/*" type="file" className="sr-only" onChange={(e)=>{console.log(e.target.files?.item(0)); callBack(e.target.files?.item(0))}}/>
+                                <input id="file-upload" name="file-upload" accept="image/*" type="file" className="sr-only" onChange={handleFileChange}/>
                                 :
                                 inputType === "video" ? 
-                                <input id="file-upload" name="file-upload" accept="video/*" type="file" className="sr-only" onChange={(e)=>{console.log(e.target.files?.item(0)); callBack(e.target.files?.item(0))}}/>
+                                <input id="file-upload" name="file-upload" accept="video/*" type="file" className="sr-only" onChange={handleFileChange}/>
                                 :
                                 <p>Tipo de arquivo não reconhecido</p> /*File type not recognized*/
                                 
@@ -53,9 +82,13 @@ export const Dropzone = ({callBack, inputType}:DropzoneProps) => {
                         </label>
                      
                     </div>
-                   
+                    
                 </div>
             </div>
+            <div className="text-right">
+                <label htmlFor="">o arquivo deve conter no máximo 500Mb</label>
+          </div>
         </div>
+        
     )
 }

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { Dropzone } from "./Dropzone/Dropzone"; // Used image or video upload NOT IMPLEMENTED YET
+import { Dropzone, dropzoneInstance } from "./Dropzone/Dropzone"; // Used image or video upload NOT IMPLEMENTED YET
 import { toast } from "react-toastify";
 import RichTextEditor from "./RichTextEditor";
 
@@ -81,10 +81,11 @@ export const EditLecture = ({ data, handleEdit }: Props) => {
       data._id
     )
       .then((res) => {
-        if (typeof lectureContent !== "string" && lectureContent !== null) {
+        const uploadedFile = dropzoneInstance.getFile();
+        if (uploadedFile !== null) {
           StorageServices.uploadFile({
             id: res._id,
-            file: lectureContent,
+            file: uploadedFile,
             parentType: "l",
           });
         }
@@ -118,10 +119,6 @@ const handleEditorChange = (value: string) => {
   setValue('content', value); // Manually set form value
   data.content = value;
 };
-
-useEffect(() => {
-  register('content', { required: true }); // Manually register the field with validation
-}, [register]);
 
   return (
     <>
@@ -230,10 +227,7 @@ useEffect(() => {
                     Arquivo de entrada: vídeo ou imagem
                   </label>{" "}
                   {/*Input file*/}
-                  <Dropzone
-                    inputType="video"
-                    callBack={returnFunction}
-                  ></Dropzone>
+                  <Dropzone inputType="video"></Dropzone>
                 </>
               ) : (data?.contentType === "text" && contentType === "") ||
                 contentType === "text" ? (

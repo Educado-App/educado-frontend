@@ -49,12 +49,14 @@ const updateLecture = async (props: any, token: string, lid: string ) => {
   if (lid == undefined){
     throw("Error: updateLecture input id is undefined")
   }
+
+
   const response = await axios.patch(
     `${BACKEND_URL}/api/lectures/${lid}`,
     props,
     { headers: { Authorization: `Bearer ${token}` } }
   );
-  return response.data
+  return response.data;
 };
 
 /**
