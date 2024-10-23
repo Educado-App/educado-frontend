@@ -2,6 +2,7 @@ type userInfo = {
   name: string,
   email: string,
   id: string,
+  role: string,
 }
 
 export const getUserInfo = () :userInfo => JSON.parse(localStorage.getItem("userInfo") ?? '{}');
