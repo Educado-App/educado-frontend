@@ -35,7 +35,8 @@
   "include": [
     "src",
     "__tests__",
-    "cypress"
+    "cypress",
+    "eslint.config.js"
   ],
   "references": [{ "path": "./tsconfig.node.json" }],
 	"exclude": ["cypress.config.ts", "cypress", "node_modules"]
