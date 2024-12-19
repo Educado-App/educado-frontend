@@ -34,7 +34,6 @@ export default function CertificateCard(props: { certificate: Certificate, num: 
 	}, [])
 
 	function download() {
-		console.log('download');
 		window.open(CERT_URL + pdfPath, '_blank');
 	}
 

@@ -59,17 +59,6 @@ const StarRating = (props: StarRatingProps) => {
         starCount - fullStars - (shouldShowHalfStar ? 1 : 0)
     );
 
-    // Log values for debugging
-    /* console.log({
-    totalFilledStars,
-    fullStars,
-    shouldShowHalfStar,
-    emptyStars,
-    starCount,
-    rating,
-    maxRating,
-  }); */
-
     return (
         <div className="flex flex-row">
             {/* Generate full stars */}

@@ -1,7 +1,7 @@
 import { Main } from '../../interfaces/Course';
 
 // Components
-import { CourseListCard } from './CourseListCard';
+import { CourseGridCard } from './CourseGridCard';
 
 export const CourseGrid = (data: Main) => {
     // local data clone
@@ -25,7 +25,7 @@ export const CourseGrid = (data: Main) => {
 
     return (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-6 p-6">
-            {data.data.map((course: any, key: number) => <CourseListCard course={course} key={key} />)}
+            {data.data.map((course: any, key: number) => <CourseGridCard course={course} key={key} />)}
         </div>
     )
 }

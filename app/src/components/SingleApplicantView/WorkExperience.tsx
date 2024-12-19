@@ -1,5 +1,4 @@
 const WorkExperience = ({ data } : {data: any}) => {
-console.log(data)
 return (
 <div className="bg-white px-4 py-3 grid sm:grid-cols-2 sm:gap-4 sm:px-6 space-x-8">
     <dt className="text-lg font-bold font-['Montserrat']  text-gray-900">

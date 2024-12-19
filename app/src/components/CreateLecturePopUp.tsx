@@ -1,17 +1,11 @@
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
 import { Dropzone } from "./Dropzone/Dropzone";
-import { toast } from "react-toastify";
 
-// Contexts
-// import useAuthStore from '../../contexts/useAuthStore';
 // Hooks
-import { getUserToken } from "../helpers/userInfo";
+import { useLectures, useMedia } from "../contexts/courseStore";
 
 import { useNotifications } from "./notification/NotificationContext";
-// Services
-import StorageServices from "../services/storage.services";
-import LectureService from "../services/lecture.services";
 
 //components
 import { ModalButtonCompont } from "./ModalButtonCompont";
@@ -19,6 +13,8 @@ import RichTextEditor from "./RichTextEditor";
 // Icons
 import { Icon } from "@mdi/react";
 import { mdiInformationSlabCircleOutline } from "@mdi/js";
+
+import { Component } from "../interfaces/Course";
 
 <Icon path={mdiInformationSlabCircleOutline} size={1} />;
 
@@ -31,7 +27,7 @@ type Inputs = {
 
 interface Props {
   savedSID: string;
-  handleLectureCreation: Function;
+  handleLectureCreation: (newComponent: Component) => void;
 }
 /**
  * This component is a modal that opens when the user clicks on the button to create a new lecture.
@@ -40,10 +36,6 @@ interface Props {
  * @returns HTML Element
  */
 export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
-  //TODO: When tokens are done, Remove dummy token and uncomment useToken
-  const token = getUserToken();
-
-  //const sid = window.location.pathname.split("/")[2];
 
   // use-form setup
   const {
@@ -55,10 +47,11 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
   } = useForm<Inputs>();
 
   const [contentType, setContentType] = useState<string>("");
-  const [isSubmitting, setIsSubmitting] = useState<boolean>(false);
   const [editorValue, setEditorValue] = useState<string>('');
-  const [previewFile, setPreviewFile] = useState<string | null>(null);
   const [lectureVideo, setLectureVideo] = useState<File | null>(null);
+  const { addLectureToCache } = useLectures();
+  const { addMediaToCache } = useMedia();
+
 
 
   const { addNotification } = useNotifications();
@@ -70,53 +63,41 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
   /**
    * Function to handle the submit of the form
    *
-   * @param {Inputs} data The data from each field in the form put into an object
+   * @param {Inputs} newData The data from each field in the form put into an object
    */
-  const onSubmit: SubmitHandler<Inputs> = async (newData) => {
-    
-    
-    setIsSubmitting(true);
-    LectureService.addLecture(
-      {
-        
-        title: newData.title,
-        description: newData.description,
-        contentType: newData.contentType,
-        content: newData.content,
-      },
-      token,
-      savedSID
-    )
-      .then((res) => {
-        if (lectureVideo !== null) {
-          StorageServices.uploadFile({
-            id: res.data.compId,
-            file: lectureVideo,
-            parentType: "l",
-          });
-        }
-        LectureService.updateLecture(res.data, token, res.data._id);
-        console.log("lecture created:", res);
-        handleLectureCreation(res.data);
-        setIsSubmitting(false);
-        clearLectureModalContent();
-        addNotification("Aula criada com sucesso");
-      })
-      .catch((err) => {
-        toast.error("Fracassado: " + err);
-        setIsSubmitting(false);
-      });
+  const onSubmit: SubmitHandler<Inputs> = async (newData: Inputs) => {
+    const newLecture = {
+      _id: "0",
+      title: newData.title,
+      description: newData.description,
+      contentType: newData.contentType,
+      content: newData.content,
+      parentSection: savedSID,
+    }
+    const res = addLectureToCache(newLecture);
+    const newComponent = {
+      compId: res._id,
+      compType: "lecture",
+      _id : "0",
+    }
+    handleLectureCreation(newComponent)
+    if (lectureVideo !== null) {
+      const newMedia = {
+        id: res._id,
+        file: lectureVideo,
+        parentType: "l",
+      }
+      addMediaToCache(newMedia);
+      setLectureVideo(null);
+    }
+    clearLectureModalContent();
+    addNotification("Aula criada com sucesso");
   };
 
   function clearLectureModalContent() {
     reset();
       setContentType("");
   }
-
-  
-  
-
-
 
   const handleEditorChange = (value: string) => {
     setEditorValue(value); // Update local state
@@ -129,8 +110,8 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
     <>
       {/*Text shown in the top of create lecture*/}
       <div className="modal" id={`lecture-create-${savedSID}-modal`}>
-        <div className="modal-box bg-gradient-to-b from-primaryLight rounded w-11/12 max-w-xl">
-          <h3 className="font-bold text-lg">Crie sua nova aula</h3>{" "}
+        <div className="modal-box bg-gradient-to-b from-primaryLight rounded-3xl w-11/12 max-w-xl">
+          <h3 className="font-bold text-lg">Crie sua nova aula </h3>{" "}
           {/*Create your new lecture!*/}
           <p className="py-4">
             Preencha o formulário e inicie sua nova aula!
@@ -142,12 +123,12 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
             onSubmit={handleSubmit(onSubmit)}
           >
             <div className="flex flex-col space-y-2 text-left">
-              <label htmlFor="title">Título</label> {/*Title*/}
+              <label htmlFor="title">Nome <span className="text-red-500">*</span></label> {/*Title*/}
               <input
                 type="text"
-                placeholder={"Insira o título da aula"}
+                placeholder={"Noma da aula"}
                 defaultValue={""}
-                className="form-field focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="form-field focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent rounded-lg border-none"
                 {...register("title", { required: true })}
               />
               {errors.title && (
@@ -156,12 +137,12 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
             </div>
             {/*Field to input the description of the lecture*/}
             <div className="flex flex-col space-y-2 text-left">
-              <label htmlFor="description">Descrição</label> {/*Description*/}
+              <label htmlFor="description">Descrição <span className="text-red-500">*</span></label> {/*Description*/}
               <textarea
                 rows={4}
-                placeholder={"Insira o conteúdo escrito dessa aula"}
+                placeholder={"Descrição da aula"}
                 defaultValue={""}
-                className="resize-none form-field focus:outline-none focus:ring-2 focus:ring-primary focus:border-transparent"
+                className="resize-none form-field focus:outline-none focus:ring-2 focus:ring-primary rounded-lg focus:border-transparent border-none"
                 {...register("description", { required: true })}
               />
               {/*defaultValue=Add a description to your lecture*/}
@@ -170,7 +151,7 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
               )}
             </div>
             
-            <label htmlFor="content-type">Tipo de conteúdo</label>{" "}
+            <label htmlFor="content-type">Tipo de conteúdo <span className="text-red-500">*</span></label>{" "}
             {/*Content type*/}
             <div className="flex flex-row space-x-8">
               <div>
@@ -217,7 +198,7 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
               {contentType === "video" ? (
                 <>
                   <label htmlFor="cover-image">
-                    Arquivo de entrada: vídeo ou imagem
+                    Upload do video <span className="text-red-500">*</span>
                   </label>{" "}
                   {/*Input file*/}
                   
@@ -237,7 +218,7 @@ export const CreateLecture = ({ savedSID, handleLectureCreation }: Props) => {
             </div>
             {/*Create and cancel buttons*/}
             <ModalButtonCompont
-              isSubmitting={isSubmitting}
+              isSubmitting={false}
               typeButtons={`lecture-create-${savedSID}`}
               type={"create"}
             />

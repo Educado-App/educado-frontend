@@ -94,7 +94,7 @@ const Login = () => {
              
           // error messages for email and password  
           })
-          .catch(err => { setError(err); console.log(err)
+          .catch(err => { setError(err); console.error(err)
             switch (err.response.data.error.code){
               case "E0004": //Invalid Email 
                 setEmailError(err);
@@ -128,7 +128,7 @@ const Login = () => {
               setError('');
               break;
               
-              default: console.log(error);
+              default: console.error(error);
           }});
     };
     
@@ -161,7 +161,7 @@ const Login = () => {
       setPasswordErrorMessage('');
     }
     // failure on submit handler FIXME: find out what this does (OLD CODE)
-    //const onError: SubmitHandler<Inputs> = error => console.log(error);
+    //const onError: SubmitHandler<Inputs> = error => console.error(error);
 
     // Account application success modal visibility effect
     useEffect(() => {

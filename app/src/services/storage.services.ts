@@ -58,11 +58,6 @@ const getMedia = async (fileName: string, retries = 10, delay = 2000): Promise<s
   return "";
 };
 
-const getFile = async (url: string, token: string) => {
-  return await axios.get(url, { headers: { Authorization: `Bearer ${token}` } })
-    .then((res) => res.data);
-};
-
 const deleteFile = async (id: string | undefined, token: string) => {
   if (!id) {
     return;
@@ -74,7 +69,6 @@ const deleteFile = async (id: string | undefined, token: string) => {
 const StorageServices = Object.freeze({
   uploadFile,
   getMedia,
-  getFile,
   deleteFile
 });
 

@@ -1,4 +1,4 @@
-export const CourseListCardLoading = () => {
+export const CourseGridCardLoading = () => {
     return (
         <div className="overflow-hidden shadow-lg rounded h-90 w-full cursor-pointer m-auto">
             <div className="bg-gray-200 h-48  rounded-t-xl p-3 overflow-hidden animate-pulse"></div>

@@ -19,7 +19,7 @@ const Layout = ({ children }: { children: Array<ReactNode> | ReactNode, meta: st
 				<Navbar />
 
 				{/** Content */}
-				<main className="flex-grow overflow-x-hidden bg-gradient-to-br from-[#c8e5ec] to-[white]">
+				<main className=" bg-gradient-to-br from-[#c8e5ec] to-[white]">
 					{children}
 				</main>
 			</div>

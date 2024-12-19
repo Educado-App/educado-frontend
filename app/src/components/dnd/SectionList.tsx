@@ -1,19 +1,18 @@
 import { useState } from "react";
+import { UniqueIdentifier } from "@dnd-kit/core";
 
 // DND-KIT
 import {
   DndContext,
   closestCenter,
   DragOverlay,
+  DragEndEvent,
   KeyboardSensor,
   PointerSensor,
   useSensor,
   useSensors,
 } from "@dnd-kit/core";
 
-import { getUserToken } from "../../helpers/userInfo";
-import SectionServices from "../../services/section.services";
-import { toast } from "react-toastify";
 import { useNotifications } from "../notification/NotificationContext";
 
 import {
@@ -29,21 +28,22 @@ import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
 import { SortableItem } from "./@dnd/SortableItem";
 import { Item } from "./@dnd/Item";
 
+//store"
+import { useSections, useCourse } from "@contexts/courseStore";
+
 interface Props {
   sections: Array<string>;
-  setSections: (updateFn: (prevSections: any[]) => any[]) => void;
-  addOnSubmitSubscriber: Function;
 }
-
+ 
 export const SectionList = ({
   sections,
-  setSections,
-  addOnSubmitSubscriber,
 }: Props) => {
   // States
-  const [activeId, setActiveId] = useState<string | null>(null);
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
   const [savedSID, setSavedSID] = useState<string>("");
 
+  const { deleteCachedSection } = useSections();
+  const { updateCachedCourseSections } = useCourse();
   const { addNotification } = useNotifications();
 
   // Setup of pointer and keyboard sensor
@@ -55,37 +55,31 @@ export const SectionList = ({
   );
 
   const handleSectionDeletion = (sId: string) => {
-    const token = getUserToken();
-    if (confirm("Tem certeza que deseja excluir?") == true) {
-      SectionServices.deleteSection(sId, token)
-        .then(() => {
-          addNotification("Seção excluída");
-          setSections((prevSections) =>
-            prevSections.filter((section) => section !== sId)
-          );
-        })
-        .catch((err) => toast.error(err));
+    if (confirm("Tem certeza que deseja excluir?")){
+      addNotification("Seção excluída");
+      deleteCachedSection(sId);
     }
   };
-
-  // handle start of dragging
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: { active: { id: UniqueIdentifier } }) => {
     const { active } = event;
     setActiveId(active.id);
   };
 
-  // handle end of dragging
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
-      setSections((items) => {
-        const oldIndex = items.findIndex((item) => item === active.id);
-        const newIndex = items.findIndex((item) => item === over.id);
-        return arrayMove(items, oldIndex, newIndex);
-      });
+    if (over === null || active.id === over.id) return; 
+    const getAdjustedSectionList = () => {
+      const oldIndex = sections.findIndex((section) => section === active.id);
+      const newIndex = sections.findIndex((section) => section === over.id);
+      const result = arrayMove(sections, oldIndex, newIndex);
+      return result;
     }
+    updateCachedCourseSections(getAdjustedSectionList());
+    
     setActiveId(null);
   };
+
+  
 
   return (
     <div className="w-full">
@@ -104,7 +98,7 @@ export const SectionList = ({
             <SortableItem
               key={section}
               sid={section}
-              addOnSubmitSubscriber={addOnSubmitSubscriber}
+              sectionNumber={index + 1}
               savedSID={savedSID}
               setSavedSID={setSavedSID}
               handleSectionDeletion={handleSectionDeletion}
@@ -113,7 +107,7 @@ export const SectionList = ({
         </SortableContext>
 
         <DragOverlay className="w-full">
-          {activeId ? <Item id={activeId} /> : null}
+          {activeId !== null ? <Item id={activeId} /> : null}
         </DragOverlay>
       </DndContext>
     </div>

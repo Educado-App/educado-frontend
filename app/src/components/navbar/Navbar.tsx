@@ -59,6 +59,12 @@ export const Navbar = () => {
               </Link>
             </li>
             <li>
+              <Link to="/certificates" className="flex items-center text-lg font-['Montserrat']">
+                <Icon path={mdiCertificate} size={1} color="grayMedium" />
+                <span>Meus certificados</span>
+              </Link>
+            </li>
+            <li>
 
               {userInfo.role === "admin" && (
                 <Link to="/educado-admin/applications" className="flex items-center text-lg font-['Montserrat']">

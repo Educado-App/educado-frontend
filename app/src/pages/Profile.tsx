@@ -7,9 +7,6 @@ import React, { useEffect, useRef, useState } from "react";
 import { SubmitHandler, useForm } from "react-hook-form";
 import { useNavigate } from 'react-router-dom';
 
-// Other libraries
-import { toast } from 'react-toastify';
-
 // Services
 import ProfileServices from "../services/profile.services";
 import AccountServices from "../services/account.services";
@@ -33,6 +30,7 @@ import staticForm from "../utilities/staticForm";
 
 // Helpers
 import { tempObjects } from "../helpers/formStates";
+import { toast } from "react-toastify";
 
 // Contexts
 import useAuthStore from '../contexts/useAuthStore'

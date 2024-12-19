@@ -126,7 +126,6 @@ export default () => {
           item.educationStartDate && String(item.educationStartDate).trim() !== "" &&
           item.educationEndDate && String(item.educationEndDate).trim() !== ""
       );
-      console.log("Education form is filled: ", EducationInputsFilled)
       return EducationInputsFilled;
     } 
     else {
@@ -137,7 +136,6 @@ export default () => {
           (item.workEndDate && String(item.workEndDate).trim() !== "" || item.isCurrentJob) && // If isCurrentJob is true, workEndDate can be empty
           item.description && String(item.description).trim() !== ""
       );
-      console.log("Experience form is filled: ", ExperienceInputsFilled)
       return ExperienceInputsFilled;
     }
   };

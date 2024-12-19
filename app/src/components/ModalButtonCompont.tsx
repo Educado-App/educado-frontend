@@ -13,10 +13,8 @@ export const ModalButtonCompont = ({
     const modalCheckbox = document.getElementById(
       typeButtons
     ) as HTMLInputElement;
-
-    if (modalCheckbox) {
-      modalCheckbox.checked = false;
-    }
+    modalCheckbox.checked = false;
+    
   };
 
   return (

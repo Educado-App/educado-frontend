@@ -12,7 +12,7 @@ export const getAverageRatingOfCC = async (userid: string, period?: string): Pro
         const response = await axios.request(config);
         return response.data.averageRating;
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return 0;
     }
 };
@@ -31,7 +31,7 @@ export const getAverageRatingOfCourse = async (courseid?: string): Promise<numbe
         const response = await axios.request(config);
         return response.data.averageRating;
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return 0;
     }
 };
@@ -47,7 +47,7 @@ export const getTotalGrantedCertificates = async (userid: string): Promise<numbe
         const response = await axios.request(config);
         return response.data.totalCertificates;
     } catch (error) {
-        console.log(error);
+        console.error(error);
         return 0;
     }
 }

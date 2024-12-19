@@ -12,7 +12,7 @@ function ProtectedRoute ({ children }: { children: JSX.Element }) {
     return children;
 
   } else {
-  console.log("No token found")
+  console.error("No token found")
 
   React.useEffect(() => {
     navigate("/")

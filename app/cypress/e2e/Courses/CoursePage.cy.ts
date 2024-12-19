@@ -1,5 +1,5 @@
 import "cypress-localstorage-commands";
-
+import 'cypress-file-upload';
 const BACKEND_URL = Cypress.env('BACKEND_URL')
 
 /**
@@ -59,16 +59,16 @@ describe('Tooltip on Course Page', () => {
   it('Close tooltip', () => {
     cy.get('#tooltipIcon0').click()
     cy.get('#tooltipBox').should('exist')
-    
+
     cy.get('#tooltipClose').click()
     cy.get('#tooltipBox').should('not.exist')
   });
-  
+
 
   it('Cycle through tooltips', () => {
     cy.get('#tooltipIcon0').click()
     cy.get('#tooltipBox').should('exist')
-    
+
     cy.get('#tooltipNext').click()
     cy.get('#tooltipBack').click()
 
@@ -80,7 +80,7 @@ describe('Tooltip on Course Page', () => {
   it('Finish tooltip', () => {
     cy.get('#tooltipIcon1').click()
     cy.get('#tooltipBox').should('exist')
-    
+
     cy.get('#tooltipFinish').click()
     cy.get('#tooltipBox').should('not.exist')
   });
@@ -144,6 +144,15 @@ describe('Create Course', () => {
     cy.get('#category-field').should('have.value', 'sewing')
     cy.get('#difficulty-field').should('have.value', '1')
 
+    // Upload the cover image
+    cy.fixture('mock-image.png').then((fileContent) => {
+      cy.get('input[type="file"]').attachFile({
+        fileContent,
+        fileName: 'mock-image.png',
+        mimeType: 'image/png',
+      });
+    });
+
     //save the course
     cy.get('#SaveAsDraft').click()
 
@@ -151,4 +160,4 @@ describe('Create Course', () => {
 
 });
 
-export {}
+export { }

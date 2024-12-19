@@ -5,31 +5,58 @@ import { BACKEND_URL } from "../helpers/environment";
 import { getUserInfo, getUserToken } from "../helpers/userInfo";
 
 //interfaces
-import { CreatorPopulatedCourse, Course, NewCourse } from "@interfaces/Course";
+import { CreatorPopulatedCourse, Course } from "../interfaces/Course"
+
+import { getCourseIdFromFormData } from "@utilities/formDataUtils";
+
+
+
+
+// Create a new course
+const createCourse = async (newCourse: FormData, token: string) => {
+  try {
+    const res = await axios.put(
+      `${BACKEND_URL}/api/courses/create/new`,
+      newCourse,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error creating course:", error);
+    throw error;
+  }
+};
+// Update a course
+const updateCourse = async (updatedCourse: FormData, token: string) => {
+  const courseId = getCourseIdFromFormData(updatedCourse);
+  try {
+    const res = await axios.post(
+      `${BACKEND_URL}/api/courses/update/${courseId}`,
+      updatedCourse,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "multipart/form-data",
+        },
+      }
+    );
+    return res.data;
+  } catch (error) {
+    console.error("Error updating course:", error);
+    throw error;
+  }
+};
+
+
 
 /**
  * IN ALL METHODS THE TOKEN HAS BEEN COMMENTED OUT, SINCE WE DON'T HAVE A TOKEN YET
  */
-
-const createCourse = async (data: NewCourse, token: string) => {
-  return await axios.put<Course>(
-    `${BACKEND_URL}/api/courses`,
-    {
-      title: data.title,
-      description: data.description,
-      category: data.category,
-      difficulty: data.difficulty,
-      creator: data.creator,
-      status: data.status,
-    },
-    {
-      headers: {
-        Authorization: `Bearer ${token}`,
-        token: localStorage.getItem("token") || "",
-      },
-    }
-  );
-};
 
 /**
  * Get all courses from specific creator
@@ -82,8 +109,19 @@ const getAllCourses = async () => {
  * @param url The route to get the course detail
  * @returns The course detail
  */
-const getCourseDetail = async (url: string, token: string) => {
-  const res = await axios.get<Course>(url, {
+
+const getCourseDetail = async (id: string, token: string) => {
+  const res = await axios.get(`${BACKEND_URL}/api/courses/${id}`, { headers: { Authorization: `Bearer ${token}` } })
+
+  return res.data;
+};
+
+const updateCourseDetail = async (
+  data: Partial<Course>,
+  id: string | undefined,
+  token: string
+) => {
+  const res = await axios.patch(`${BACKEND_URL}/api/courses/${id}`, data, {
     headers: { Authorization: `Bearer ${token}` },
   });
 
@@ -97,52 +135,7 @@ const getCourseCategories = async (url: string, token: string) => {
   });
 
   return res.data;
-};
-
-/**
- * Update a specific course
- * @param data the data of the course to be updated
- * @param id The id of the course
- * @param token The token of the user
- * @returns Confirmation of the update
- */
-const updateCourseDetail = async (
-  data: Partial<Course>,
-  id: string | undefined,
-  token: string
-) => {
-  const res = await axios.patch(`${BACKEND_URL}/api/courses/${id}`, data, {
-    headers: { Authorization: `Bearer ${token}` },
-  });
-
-  return res.data;
-};
-
-const updateCourseSectionOrder = async (
-  sections: Array<string>,
-  id: string | undefined,
-  token: string
-) => {
-  const res = await axios.patch(
-    `${BACKEND_URL}/api/courses/${id}/sections`,
-    { sections },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data;
-};
-
-const updateCourseStatus = async (
-  course_id: string | undefined,
-  status: string,
-  token: string
-) => {
-  const res = await axios.patch(
-    `${BACKEND_URL}/api/courses/${course_id}/updateStatus`,
-    { status },
-    { headers: { Authorization: `Bearer ${token}` } }
-  );
-  return res.data;
-};
+}
 
 /**
  * Delete a specific course
@@ -156,17 +149,28 @@ const deleteCourse = async (id: string | undefined, token: string) => {
   });
 };
 
+
+
+const getCourseFeedback = async (url: string, token: string) => {
+  const response = await axios.get(url, {
+    headers: {
+      Authorization: `Bearer ${token}`
+    }
+  });
+  return response;
+}
+
 // Export all methods
 const CourseServices = Object.freeze({
   createCourse,
+  updateCourse,
   getAllCreatorCourses,
   getAllCourses,
   getCourseDetail,
-  getCourseCategories,
   updateCourseDetail,
-  updateCourseStatus,
-  updateCourseSectionOrder,
+  getCourseCategories,
   deleteCourse,
+  getCourseFeedback,
 });
 
 export default CourseServices;

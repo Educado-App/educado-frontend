@@ -32,7 +32,7 @@ const verifyCode = async (email: string, token: string) => {
     });
     return res;
   } catch (err : any) {
-    console.log(err);
+    console.error(err);
     if (err.response?.data != null) {
       throw err.response.data;
     }

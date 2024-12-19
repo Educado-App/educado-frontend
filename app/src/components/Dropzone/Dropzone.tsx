@@ -1,4 +1,5 @@
-import { FC, useEffect, useState } from "react";
+import { FC, useEffect, useState, useRef } from "react";
+import { useNotifications } from "../notification/NotificationContext";
 
 
 
@@ -7,6 +8,7 @@ type DropzoneProps = {
     id: string;
     previewFile?: string | null;
     onFileChange?: (file: File | null) => void;
+    maxSize?: number;
 };
 
 /**
@@ -19,10 +21,14 @@ export const Dropzone: FC<DropzoneProps> = ({
     inputType, 
     id, 
     previewFile,
-    onFileChange 
+    onFileChange,
+    maxSize = 10 * 1024 * 1024, // 10MB, change to 500MB when transcoding service has been redeployed
   }) => {
+    const { addNotification } = useNotifications();
     const [preview, setPreview] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState(false);
+    const isRequired = !preview;
+    const inputRef = useRef<HTMLInputElement | null>(null);
 
     useEffect(() => {
         if (previewFile && !preview) {
@@ -31,19 +37,35 @@ export const Dropzone: FC<DropzoneProps> = ({
     }, [previewFile]);
 
     const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-        const selectedFile = e.target.files?.item(0) || null;
+      const selectedFile = e.target.files?.item(0) || null;
 
-        if (!selectedFile) {
+      if (!selectedFile) {
         setPreview(null);
         onFileChange?.(null);
+        if (inputRef.current) {
+          inputRef.current.value = "";
+      }
         return;
+      
+      }
+
+      if (selectedFile.size > maxSize) {
+        
+        addNotification(`O arquivo não deve exceder ${(maxSize / (1024 * 1024)).toFixed(1)} MB.`);
+        setPreview(null);
+        onFileChange?.(null);
+        if (inputRef.current) {
+          inputRef.current.value = "";
         }
+        return;
+      }
 
-        setIsLoading(true);
 
-        setPreview(URL.createObjectURL(selectedFile));
-        onFileChange?.(selectedFile);
-        setIsLoading(false);
+      setIsLoading(true);
+
+      setPreview(URL.createObjectURL(selectedFile));
+      onFileChange?.(selectedFile);
+      setIsLoading(false);
     };
 
     // Cleanup URLs on unmount
@@ -101,6 +123,8 @@ export const Dropzone: FC<DropzoneProps> = ({
                 >
                   <span>Carregamento de arquivo</span>
                   <input
+                    ref={inputRef}
+                    required={isRequired}
                     id={`file-upload-${id}`}
                     name={`file-upload-${id}`}
                     accept={inputType === "image" ? "image/*" : "video/*"}
@@ -113,7 +137,7 @@ export const Dropzone: FC<DropzoneProps> = ({
             </div>
           </div>
           <div className="text-right">
-            <label>o arquivo deve conter no maximo 500Mb</label>
+            <label>o arquivo deve conter no maximo {(maxSize / (1024 * 1024)).toFixed(1)}MB</label>
           </div>
         </div>
       );

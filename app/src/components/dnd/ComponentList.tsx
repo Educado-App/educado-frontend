@@ -1,7 +1,9 @@
-import { useState, useEffect } from "react";
+import { useState} from "react";
 
 // DND-KIT
 import {
+  UniqueIdentifier,
+  DragEndEvent,
   DndContext,
   closestCenter,
   DragOverlay,
@@ -19,31 +21,29 @@ import {
 } from "@dnd-kit/sortable";
 
 import { restrictToVerticalAxis } from "@dnd-kit/modifiers";
+import { useSections } from "@contexts/courseStore";
 
 // Components
 import { SortableComponentItem } from "./@dnd/SortableComponentItem";
 import { Item } from "./@dnd/Item";
 
 // Intefaces
-import ComponentService from "../../services/component.service";
-import { Component } from "../../interfaces/SectionInfo";
+import { Component } from "@interfaces/Course";
+
 
 interface Props {
   sid: string;
   components: Component[];
-  setComponents: Function;
-  addOnSubmitSubscriber: Function;
+
 }
 
 export const ComponentList = ({
   sid,
-  components,
-  setComponents,
-  addOnSubmitSubscriber,
+  components
 }: Props) => {
   // States
-  const [activeId, setActiveId] = useState(null);
-
+  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null);
+  const { updateCachedSectionComponents} = useSections();
   // Setup of pointer and keyboard sensor
   const sensors = useSensors(
     useSensor(PointerSensor),
@@ -53,38 +53,29 @@ export const ComponentList = ({
   );
 
   // handle start of dragging
-  const handleDragStart = (event: any) => {
+  const handleDragStart = (event: { active: { id: UniqueIdentifier } }) => {
     const { active } = event;
     setActiveId(active.id);
   };
 
   // handle end of dragging
-  const handleDragEnd = (event: any) => {
+  const handleDragEnd = (event: DragEndEvent) => {
     const { active, over } = event;
-    if (active.id !== over.id) {
-      setComponents((components: Component[]) => {
+    if (over === null || active.id === over.id) return;
+      const adjustComponents = () => {
         const oldIndex = components.findIndex(
           (component) => component.compId === active.id
         );
         const newIndex = components.findIndex(
           (component) => component.compId === over.id
+          
         );
-        console.log("oldIndex", oldIndex);
-        console.log("newIndex", newIndex);
-        console.log("components", components);
-
         return arrayMove(components, oldIndex, newIndex);
-      });
-    }
+      }
+
+      const newComponents = adjustComponents();
+      updateCachedSectionComponents(sid, newComponents);
   };
-
-  useEffect(() => {
-    addOnSubmitSubscriber(() => onSubmit());
-  }, []);
-
-  function onSubmit() {
-    ComponentService.setComponents(sid, components);
-  }
 
   return (
     <div className="w-full">
@@ -96,20 +87,20 @@ export const ComponentList = ({
         onDragEnd={handleDragEnd}
       >
         <SortableContext
-          items={components.map((comp) => comp.compId)}
+          items={components.map((comp) => comp._id)}
           strategy={verticalListSortingStrategy}
         >
-          {components.map((comp, key: React.Key) => (
+          {components.map((comp) => (
             <SortableComponentItem
-              key={key}
+              key={comp._id}
               component={comp}
-              setComponents={setComponents}
+              sid={sid}
             />
           ))}
         </SortableContext>
 
         <DragOverlay className="w-full">
-          {activeId ? <Item id={activeId} /> : null}
+          {activeId !== null ? <Item id={activeId} /> : null}
         </DragOverlay>
       </DndContext>
     </div>

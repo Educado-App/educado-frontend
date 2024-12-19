@@ -58,6 +58,19 @@ const getExerciseDetail = (url: string, token: string) => {
 }
 
 /**
+ * Get exercises by section ID
+ * 
+ * @param sid Section ID
+ * @param token Token of the user
+ * @returns A list of exercises
+ */
+const getExercisesBySectionId = (sid: string, token: string) => {
+  return axios.get(`${BACKEND_URL}/api/exercises/section/${sid}`, 
+  { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.data);
+};
+
+/**
  * Delete a exercise
  * 
  * @param id Exercise ID
@@ -79,6 +92,7 @@ const deleteExercise = async (id: string | undefined, token: string) => {
  */
 const ExerciseServices = Object.freeze({
   getExerciseDetail,
+  getExercisesBySectionId,
   addExercise,
   updateExercise,
   deleteExercise

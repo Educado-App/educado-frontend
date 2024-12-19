@@ -1,19 +1,14 @@
 import { useState } from "react";
 import { useForm, SubmitHandler } from "react-hook-form";
-import { getUserToken } from "../../helpers/userInfo";
+import { useExercises } from "@contexts/courseStore";
 import { useNotifications } from "../notification/NotificationContext";
 // Components
 import AnswerCards from "../../components/Exercise/AnswerCards";
 import { ModalButtonCompont } from "../ModalButtonCompont";
 
 // Interfaces
-import { Answer } from "../../interfaces/Answer";
-
-// Helpers
-import ExerciseServices from "../../services/exercise.services";
-
-// Pop-up messages
-import { toast } from "react-toastify";
+import { Answer } from "@interfaces/Answer";
+import { Component } from "@interfaces/Course";
 
 export interface ExercisePartial {
   title: string;
@@ -23,8 +18,7 @@ export interface ExercisePartial {
 
 interface Props {
   savedSID: string;
-  data: any;
-  handleExerciseCreation: Function;
+  handleExerciseCreation: (newComponent: Component) => void;
 }
 
 type Inputs = {
@@ -43,33 +37,30 @@ export const CreateExercise = ({ savedSID, handleExerciseCreation }: Props) => {
 
   const { register, handleSubmit, reset } = useForm<Inputs>();
   const { addNotification } = useNotifications();
-
-  /** Token doesnt work, reimplement when it token is implemented */
-  const token = getUserToken();
+  const { addExerciseToCache } = useExercises();
 
   const onSubmit: SubmitHandler<Inputs> = async (newData) => {
-    setIsSubmitting(true);
-    ExerciseServices.addExercise(
-      {
-        title: newData.title,
-        question: newData.question,
-        answers: answers,
-      },
-      token,
-      savedSID
-    )
-      .then((res) => {
-        addNotification("Exercício criado com sucesso");
-        handleExerciseCreation(res.data);
-        reset();
-        setIsSubmitting(false);
-        setAnswers(TempAnswers);
-      }) /** Successfully created exercise */
-
-      .catch((err) => {
-        toast.error("Fracassado: " + err);
-        setIsSubmitting(false);
-      });
+    const updatedExercise = {
+      title: newData.title,
+      question: newData.question,
+      answers: answers,
+      parentSection: savedSID,
+      _id: "0",
+    }
+    const res = addExerciseToCache(updatedExercise);
+    const newComponent = {
+      compId: res._id,
+      compType: "exercise",
+      _id : "0",
+    }
+    handleExerciseCreation(newComponent);
+    clearExerciseModalContent();
+    setIsSubmitting(false);
+    addNotification("Exercício criado com sucesso");
+  };
+  const clearExerciseModalContent = () => {
+    reset();
+    setAnswers(TempAnswers);
   };
 
   return (
@@ -113,7 +104,7 @@ export const CreateExercise = ({ savedSID, handleExerciseCreation }: Props) => {
 
               {/* Answers. Answers sometimes doesn't get loaded hence the conditional rendering ... */}
               {
-                answers ? (
+                (
                   <div className="rounded-md cursor-pointer p-2 focus:outline-none bg-base-100 border ">
                     <h1 className="text-md font-medium">Resposta</h1>{" "}
                     {/** Answer */}
@@ -124,9 +115,7 @@ export const CreateExercise = ({ savedSID, handleExerciseCreation }: Props) => {
                       />
                     }
                   </div>
-                ) : (
-                  <p>Carregando ...</p>
-                ) /** Loading ... */
+                ) 
               }
               {/*Create and cancel buttons*/}
               <ModalButtonCompont

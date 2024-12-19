@@ -73,6 +73,19 @@ const getLectureDetail = (url: string, token: string) => {
 };
 
 /**
+ * Get lectures by section ID
+ * 
+ * @param sid Section ID
+ * @param token Token of the user
+ * @returns A list of lectures
+ */
+const getLectureBySectionId = (sid: string, token: string) => {
+  return axios.get(`${BACKEND_URL}/api/lectures/section/${sid}`, 
+  { headers: { Authorization: `Bearer ${token}` } })
+      .then(res => res.data);
+};
+
+/**
  * Delete a lecture
  * 
  * @param lid Lecture ID
@@ -89,6 +102,6 @@ const deleteLecture = async (lid: string | undefined, token: string) => {
   );
 };
 
-const LectureService = Object.freeze({ addLecture, updateLecture, getLectureDetail, deleteLecture });
+const LectureService = Object.freeze({ addLecture, updateLecture, getLectureDetail, getLectureBySectionId, deleteLecture });
 
 export default LectureService;

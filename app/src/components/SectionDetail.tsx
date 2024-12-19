@@ -28,14 +28,12 @@ export const SectionDetail = ({selfDestroy, index}:Inputs) :JSX.Element=> {
 
     //Deletes the section from the list
     function cancelSection (){
-      console.log("cancel section");
       selfDestroy(index)
       
     }
 
     //Changes the order of the sections
     function changeOrder(){
-      console.log("change order");
     }
 
     return (  

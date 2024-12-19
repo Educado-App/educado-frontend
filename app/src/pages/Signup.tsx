@@ -128,7 +128,7 @@ const Signup = () => {
       .catch((err) => {
         setError(err);
         if (!err.response?.data) {
-          console.log(err);
+          console.error(err);
         } else {
           switch (err.response.data.error.code) {
             case "E0201": // Email already exists
@@ -146,7 +146,7 @@ const Signup = () => {
               setErrorExistMessage("");
               break;
             default:
-              console.log(error);
+              console.error(error);
           }
         }
       });

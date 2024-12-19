@@ -38,7 +38,6 @@ export default function NavigationFooter(props: propsType): JSX.Element {
     if (cooldown === 0) {
       // Start cooldown
       setCooldown(30);
-      console.log("Submitting formData from NavigationFooter:", formData);
       // Trigger resend email functionality
       await AuthServices.postUserSignup({
         firstName: formData.firstName,
@@ -68,7 +67,6 @@ export default function NavigationFooter(props: propsType): JSX.Element {
       console.error("Form data is not available");
       return;
     }
-    console.log("Submitting formData from NavigationFooter:", formData);
 
     try {
       await verifyUser({
@@ -97,7 +95,7 @@ export default function NavigationFooter(props: propsType): JSX.Element {
         navigate("/courses");
       }
     } catch (err : any) {
-      console.log(err);
+      console.error(err);
       setError(err);
       toast.error(err.response?.data.message);
     }

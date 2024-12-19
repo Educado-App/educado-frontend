@@ -27,6 +27,9 @@ module.exports = {
         warningOrange:'#FA9F47',
         toggleChecked: '#8AB0BA',        
       },
+      boxShadow: {
+        courseCard: '0px 1px 4px 0px rgba(0, 0, 0, 0.25)', // #00000040 is equivalent to rgba(0, 0, 0, 0.25)
+      },
       display: ["group-hover"],
       keyframes: {
         slidePopIn: {
